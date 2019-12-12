@@ -10,6 +10,9 @@ source.
 To run the script on a Firefox.app bundle,
 
 ````
+$ pwd
+/Users/hafta/r/codesign-tree
+
 $ ditto /Applications/Firefox.app/ Firefox.app/
 
 $ xattr -cr Firefox.app
