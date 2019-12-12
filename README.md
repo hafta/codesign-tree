@@ -1,4 +1,5 @@
-Runs the macOS codesign(1) command on a directory tree
+Small utility to runs the macOS codesign(1) command on a directory tree
+using options specified in a JSON config file.
 
 This script runs the codesign(1) command on a directory tree as specified by a
 provided JSON mappings file referred to as a map file. The function
