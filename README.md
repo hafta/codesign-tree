@@ -7,19 +7,22 @@ code is included as a module. The format of the JSON map file, the script
 arguments, and the codesign_tree function are documented in the codesign.py
 source.
 
-To run the script on a Firefox.app bundle,
+To run the script on a Firefox.app bundle, copy a Firefox.app bundle locally.
 
-````
-$ pwd
-/Users/hafta/r/codesign-tree
-
+```
+$ cd codesign-tree
 $ ditto /Applications/Firefox.app/ Firefox.app/
+```
 
+Clear extended attributes before signing.
+
+```
 $ xattr -cr Firefox.app
+```
 
-# Show the first entry of the map file.
-# XUL, pingsender, minidump-analyzer, and all the dylibs will be signed
-# with hardened runtime enabled with no entitlements specified.
+Dump the first entry of the map file with the jq utility.
+
+```
 $ jq '.["map"][0]' < examples/01-firefox/codesign-map.json
 {
   "deep": false,
@@ -32,7 +35,11 @@ $ jq '.["map"][0]' < examples/01-firefox/codesign-map.json
     "/Contents/MacOS/*.dylib"
   ]
 }
+```
 
+Run codesign-tree which will sign files as dictated by the codesign-map.json file.
+
+```
 $ python3 codesign-tree.py -v -m examples/01-firefox/codesign-map.json -r ./Firefox.app -d examples/01-firefox/ -s $CSID
 JSON map file:          /Users/hafta/r/codesign-tree/examples/01-firefox/codesign-map.json
 Entitlement directory:  /Users/hafta/r/codesign-tree/examples/01-firefox
@@ -83,4 +90,4 @@ file pattern "/Contents/MacOS/minidump-analyzer" matches no files
 /usr/bin/codesign --force -v --sign NKAGS8LV4B --deep --options runtime --entitlements /Users/hafta/r/codesign-tree/examples/01-firefox/plugin-container.production.entitlements.xml /Users/hafta/r/codesign-tree/Firefox.app/Contents/MacOS/plugin-container.app
 /Users/hafta/r/codesign-tree/Firefox.app/Contents/MacOS/plugin-container.app: replacing existing signature
 /Users/hafta/r/codesign-tree/Firefox.app/Contents/MacOS/plugin-container.app: signed app bundle with Mach-O thin (x86_64) [org.mozilla.plugincontainer]
-````
+```
