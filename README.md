@@ -19,7 +19,7 @@ $ xattr -cr Firefox.app
 
 # Show the first entry of the map file.
 # XUL, pingsender, minidump-analyzer, and all the dylibs will be signed
-# hardened runtime enable with no entitlements specified.
+# with hardened runtime enabled with no entitlements specified.
 $ jq '.["map"][0]' < examples/01-firefox/codesign-map.json
 {
   "deep": false,
