@@ -17,6 +17,22 @@ $ ditto /Applications/Firefox.app/ Firefox.app/
 
 $ xattr -cr Firefox.app
 
+# Show the first entry of the map file.
+# XUL, pingsender, minidump-analyzer, and all the dylibs will be signed
+# hardened runtime enable with no entitlements specified.
+$ jq '.["map"][0]' < examples/01-firefox/codesign-map.json
+{
+  "deep": false,
+  "runtime": true,
+  "entitlements": [],
+  "globs": [
+    "/Contents/MacOS/XUL",
+    "/Contents/MacOS/pingsender",
+    "/Contents/MacOS/minidump-analyzer",
+    "/Contents/MacOS/*.dylib"
+  ]
+}
+
 $ python3 codesign-tree.py -v -m examples/01-firefox/codesign-map.json -r ./Firefox.app -d examples/01-firefox/ -s $CSID
 JSON map file:          /Users/hafta/r/codesign-tree/examples/01-firefox/codesign-map.json
 Entitlement directory:  /Users/hafta/r/codesign-tree/examples/01-firefox
