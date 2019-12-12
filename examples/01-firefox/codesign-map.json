@@ -1,0 +1,64 @@
+{
+  "map" : [
+    {
+      "deep"         : false,
+      "runtime"      : true,
+      "entitlements" : [],
+      "globs"        : [
+        "/Contents/MacOS/XUL",
+        "/Contents/MacOS/pingsender",
+        "/Contents/MacOS/minidump-analyzer",
+        "/Contents/MacOS/*.dylib"
+      ]
+    },
+    {
+      "deep"         : true,
+      "runtime"      : true,
+      "entitlements" : [],
+      "globs"        : [
+        "/Contents/MacOS/crashreporter.app"
+      ]
+    },
+    {
+      "deep"         : true,
+      "runtime"      : true,
+      "entitlements" : [],
+      "globs"        : [
+        "/Contents/MacOS/updater.app"
+      ]
+    },
+    {
+      "deep"         : false,
+      "runtime"      : true,
+      "entitlements" : ["browser.production.entitlements.xml"],
+      "globs"        : [
+        "/Contents/MacOS/firefox-bin",
+        "/Contents/MacOS/firefox"
+      ]
+    },
+    {
+      "deep"         : false,
+      "runtime"      : true,
+      "entitlements" : [],
+      "globs"        : [
+        "/Contents/Resources/gmp-clearkey/**"
+      ]
+    },
+    {
+      "deep"         : false,
+      "runtime"      : true,
+      "entitlements" : ["browser.production.entitlements.xml"],
+      "globs"        : [
+        "/"
+      ]
+    },
+    {
+      "deep"         : true,
+      "runtime"      : true,
+      "entitlements" : ["plugin-container.production.entitlements.xml"],
+      "globs"        : [
+        "/Contents/MacOS/plugin-container.app"
+      ]
+    }
+  ]
+}
