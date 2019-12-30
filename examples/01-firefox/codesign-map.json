@@ -3,6 +3,10 @@
     {
       "deep"         : false,
       "runtime"      : true,
+      "force"        : true,
+      "keychain"     : [],
+      "sign"         : [],
+      "requirements" : [],
       "entitlements" : [],
       "globs"        : [
         "/Contents/MacOS/XUL",
@@ -14,6 +18,10 @@
     {
       "deep"         : true,
       "runtime"      : true,
+      "force"        : true,
+      "keychain"     : [],
+      "sign"         : [],
+      "requirements" : [],
       "entitlements" : [],
       "globs"        : [
         "/Contents/MacOS/crashreporter.app"
@@ -22,6 +30,10 @@
     {
       "deep"         : true,
       "runtime"      : true,
+      "force"        : true,
+      "keychain"     : [],
+      "sign"         : [],
+      "requirements" : [],
       "entitlements" : [],
       "globs"        : [
         "/Contents/MacOS/updater.app"
@@ -30,6 +42,10 @@
     {
       "deep"         : false,
       "runtime"      : true,
+      "force"        : true,
+      "keychain"     : [],
+      "sign"         : [],
+      "requirements" : [],
       "entitlements" : ["browser.production.entitlements.xml"],
       "globs"        : [
         "/Contents/MacOS/firefox-bin",
@@ -39,6 +55,10 @@
     {
       "deep"         : false,
       "runtime"      : true,
+      "force"        : true,
+      "keychain"     : [],
+      "sign"         : [],
+      "requirements" : [],
       "entitlements" : [],
       "globs"        : [
         "/Contents/Resources/gmp-clearkey/**"
@@ -47,6 +67,10 @@
     {
       "deep"         : false,
       "runtime"      : true,
+      "force"        : true,
+      "keychain"     : [],
+      "sign"         : [],
+      "requirements" : [],
       "entitlements" : ["browser.production.entitlements.xml"],
       "globs"        : [
         "/"
@@ -55,6 +79,10 @@
     {
       "deep"         : true,
       "runtime"      : true,
+      "force"        : true,
+      "keychain"     : [],
+      "sign"         : [],
+      "requirements" : [],
       "entitlements" : ["plugin-container.production.entitlements.xml"],
       "globs"        : [
         "/Contents/MacOS/plugin-container.app"

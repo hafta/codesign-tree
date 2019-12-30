@@ -20,6 +20,13 @@ are the files matching any of the glob patterns.
         {
           "deep"         : <boolean>,
           "runtime"      : <boolean>,
+          "force"        : <boolean>,
+          "sign"         : [<one or zero keychain names to pass
+                             to the codesign command>]
+          "keychain"     : [<one or zero keychain names to pass
+                             to the codesign command>]
+          "requirements" : [<one or zero requirement strings to pass
+                             to the codesign command>]
           "entitlements" : [<one or zero entitlement filenames all
                             from the same directory>],
           "globs"        : [<one or more glob filename patterns
@@ -29,7 +36,11 @@ are the files matching any of the glob patterns.
         {
           "deep"         : <boolean>,
           "runtime"      : <boolean>,
-          "entitlements" : [<...>],
+          "force"        : <boolean>,
+          "sign"         : [<string>]
+          "keychain"     : [],
+          "requirements" : [],
+          "entitlements" : [],
           "globs"        : [<...>, <...>, <...>, ...]
         }
         ...
@@ -43,6 +54,10 @@ For example,
         {
           "deep"         : false,
           "runtime"      : true,
+          "force"        : true,
+          "sign"         : [], # must be passed on command line if empty
+          "keychain"     : [], # optional
+          "requirements" : [], # optional
           "entitlements" : [default.xml],
           "globs"        : [
             "/Contents/MacOS/XUL",
@@ -59,9 +74,17 @@ Note:
      command which is executed preserving the order of the input file
      and includes all files matching all the glob patterns from the
      "globs" entry.
-  2) The entitlements array must either be empty or contain a single
-     filename for an entitlements file contained in the entitlements
-     directory passed to the script.
+
+  2) The sign, keychain, requirements, and entitlements array must either
+     be empty or contain a single string.
+
+        The entitlements entry should contain a filename for an
+        entitlements file contained in the entitlements directory
+        passed to the script.
+
+     The set of fields in ALLOWED_OVERRIDE_KEYS can be overridden
+     using command line options.
+
   3) The globs array must contain one or more filename glob patterns
      which must each start with a "/" representing the root directory
      The files matching each glob entry are input to the codesign
@@ -76,6 +99,12 @@ import logging
 import os
 import subprocess
 import sys
+
+REQUIRED_MAP_FILE_KEYS = ["force", "sign", "deep", "runtime", "entitlements",
+        "globs", "keychain", "requirements"]
+
+ALLOWED_OVERRIDE_KEYS = ["force", "sign", "runtime", "entitlements",
+        "keychain", "requirements"]
 
 def main():
     parser = argparse.ArgumentParser()
@@ -96,8 +125,31 @@ def main():
     parser.add_argument("-r", "--root-dir", type=str, required=True,
             help="the root dir, e.g., /Users/me/MyApp.app")
 
-    parser.add_argument("-s", "--sign", type=str, required=True,
-            help="the codesigning identity to use")
+    # Overrides. We depend on the --long option name matching the override
+    # key in ALLOWED_OVERRIDE_KEYS. i.e., --sign => "sign" override.
+    parser.add_argument("-s", "--sign", type=str,
+            help="the codesigning identity to use for all codesign " +
+            "commands (overrides map file)")
+
+    parser.add_argument("-f", "--force", action="store_true", default=None,
+            help="apply the force flag to all codesign commands to " +
+            "replace any existing signatures (overrides map file)")
+
+    parser.add_argument("-u", "--runtime", action="store_true", default=None,
+            help="enable hardened runtime for all codesign commands " +
+            "(overrides map file)")
+
+    parser.add_argument("-k", "--keychain", type=str, required=False,
+            help="the keychain to use for all codesign commands " +
+            "(overrides map file)")
+
+    parser.add_argument("-q", "--requirements", type=str, required=False,
+            help="the requirements string to use for all codesign commands " +
+            "(overrides map file)")
+
+    parser.add_argument("-t", "--entitlements", type=str, required=False,
+            help="the entitlements file from the entitlements dir " +
+            "to use for all codesign commands (overrides map file)")
 
     args = parser.parse_args()
 
@@ -133,8 +185,15 @@ def main():
         print("Root directory:         %s" % root_dir);
         print("Codesigning identity:   %s" % args.sign);
 
+    overrides = {}
+    for key in ALLOWED_OVERRIDE_KEYS:
+        override_arg_key = getattr(args, key)
+        if override_arg_key is not None:
+            print("Override:               %s: %s" % (key,override_arg_key));
+            overrides[key] = override_arg_key
+
     exit_code = 0
-    if not codesign_tree(map_file, root_dir, ent_dir, args.sign,
+    if not codesign_tree(map_file, root_dir, ent_dir, overrides,
             args.simulate, args.verbose, logger):
         exit_code = -1
 
@@ -143,7 +202,7 @@ def main():
 def codesign_tree(map_file,
         root_dir,
         ent_dir,
-        cs_id,
+        overrides,
         simulate,
         verbose,
         log,
@@ -162,8 +221,14 @@ def codesign_tree(map_file,
     root_dir (string) -- path to the root directory
     ent_dir (string)  -- path to the directory containing any
                          entitlement files used in the map file
-    cs_id (string)    -- the codesigning identity to use for the
-                         codesign command
+    overrides (dict)  -- override map file settings for all codesign
+                         invocations:
+                             overrides["force"] (bool)
+                             overrides["runtime"] (bool)
+                             overrides["sign"] (string)
+                             overrides["requirements"] (string)
+                             overrides["keychain"] (string)
+                             overrides["entitlements"] (string)
     simulate (bool)   -- a flag indicating the codesign command should
                          not be run
     verbose (bool)    -- a flag for printing extra information
@@ -183,71 +248,102 @@ def codesign_tree(map_file,
     log.debug("json map file: %s" % map_file);
     log.debug("entitlement directory: %s" % map_file);
     log.debug("root directory: %s" % root_dir);
-    log.debug("codesigning identity: %s" % cs_id);
     log.debug("codesign command to use: %s" % cs_path);
+
+    # Make sure only allowed override params have been passed
+    for override in sorted(overrides.keys()):
+        if override not in ALLOWED_OVERRIDE_KEYS:
+            log.error("ERROR: Invalid override key: %s" % override)
+            return False
+        log.debug("override: %s: %s" % (override, overrides[override]))
 
     cs_map_string = open(map_file).read()
     cs_map = json.loads(cs_map_string)
-
-    for cs_entry in cs_map["map"]:
-        if "deep" not in cs_entry:
-            log.error("\"deep\" key missing from map entry");
-            return False
-        if "runtime" not in cs_entry:
-            log.error("\"runtime\" key missing from map entry");
-            return False
-        if "entitlements" not in cs_entry:
-            log.error("\"entitlements\" key missing from map entry");
-            return False
-        if "globs" not in cs_entry:
-            log.error("\"globs\" key missing from map entry");
-            return False
 
     # Walk the map and make sure all referenced entitlement files are
     # present and readable. Log a warning if filename glob patterns
     # don't match any files.
     for cs_entry in cs_map["map"]:
-        if len(cs_entry["entitlements"]) is 1:
+
+        # Make sure all map entries have all the required keys
+        for key in REQUIRED_MAP_FILE_KEYS:
+            if key not in cs_entry:
+                log.error("ERROR: \"%s\" key missing from map entry" % key);
+                return False
+
+        # It's invalid for a map file entry to have >1 entitlement
+        if len(cs_entry["entitlements"]) > 1:
+            log.error("ERROR: more than one entitlement file " +
+                    "specified for a single codesign map entry")
+            return False
+
+        ent_filename = None
+        if "entitlements" in overrides:
+            ent_filename = overrides["entitlements"]
+        elif len(cs_entry["entitlements"]) is 1:
             ent_filename = cs_entry["entitlements"][0]
+        if ent_filename is not None:
             ent_fullpath = ent_dir + "/" + ent_filename;
             if (not os.path.exists(ent_fullpath) or
                     not os.access(ent_fullpath, os.R_OK)):
-                log.error("entitlement file \"%s\" could not be read" %
+                log.error("ERROR: entitlement file \"%s\" could not be read" %
                         ent_fullpath)
                 return False
-        if len(cs_entry["entitlements"]) > 1:
-            log.error("more than one entitlement file specified for a " +
-                    "single codesign map entry")
-            return False
+
         for path_glob in cs_entry["globs"]:
             if not path_glob.startswith("/"):
-                log.error("file pattern \"%s\" must start with \"/\""
+                log.error("ERROR: file pattern \"%s\" must start with \"/\""
                         % path_glob)
                 return False
             binary_paths = glob.glob(root_dir + path_glob, recursive=True)
             if len(binary_paths) is 0:
                 log.warning("file pattern \"%s\" matches no files" % path_glob)
 
+        if len(cs_entry["sign"]) is 0 and "sign" not in overrides:
+            log.error("ERROR: map file missing \"sign\" entry and no signing " +
+                    "override provided")
+            return False
+
     # walk the map and run codesign for each entry
     for cs_entry in cs_map["map"]:
-        cs_cmd = [cs_path, "--force", "-v", "--sign", cs_id]
-        if "deep" in cs_entry:
+
+        # replace entries in cs_entry with their overrides
+        for override in overrides:
+            cs_entry[override] = overrides[override]
+
+        # build the codesign command in |cs_cmd|
+        cs_cmd = [cs_path, "-v"]
+
+        if "deep" in cs_entry and cs_entry["deep"] is True:
             cs_cmd.append("--deep")
-        if "runtime" in cs_entry:
+
+        if "force" in cs_entry and cs_entry["force"] is True:
+            cs_cmd.append("--force")
+
+        for string_option in ["sign", "requirements", "keychain"]:
+            if string_option in cs_entry and len(cs_entry[string_option]) > 0:
+                cs_cmd.append("--%s" % string_option)
+                cs_cmd.append(cs_entry[string_option][0])
+
+        if "runtime" in cs_entry and cs_entry["runtime"] is True:
             cs_cmd.append("--options")
             cs_cmd.append("runtime")
+
         if len(cs_entry["entitlements"]) > 0:
             ent_fullpath = ent_dir + "/" + cs_entry["entitlements"][0]
             cs_cmd.append("--entitlements")
             cs_cmd.append(ent_fullpath)
+
         for path_glob in cs_entry["globs"]:
             path_glob = root_dir + path_glob
             binary_paths = glob.glob(path_glob, recursive=True)
             for binary_path in binary_paths:
                 cs_cmd.append(binary_path)
+
         if verbose or simulate:
             log.info(" ".join(cs_cmd))
             print(" ".join(cs_cmd))
+
         if not simulate:
             subprocess.run(cs_cmd)
 
