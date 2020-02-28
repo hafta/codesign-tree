@@ -1,5 +1,6 @@
 This example uses a map file to sign the Firefox.app bundle in a way that
-closely matches how Firefox is signed today in automation (as of Feb 2020).
+results in a similar codesign compared to how Firefox is signed today in
+automation (as of Feb 2020).
 
 ```
 $ cd codesign-tree
