@@ -11,9 +11,11 @@ to be reused when the code is included as a module. The format of the
 JSON map file is as follows.
 
 Each entry in the json["map"] array corresponds to one invocation of
-the codesign command optionally using the "--deep", "--option runtime",
-and "--entitlement <file>" CLI arguments. The files to be codesigned
-are the files matching any of the glob patterns.
+the codesign command and is represented as a dictionary whose key value pairs
+control the options used. A subset of codesign CLI arguments can be configured
+including "--deep", "--option runtime", "--force", "--requirements",
+and "--entitlement <file>" arguments. The files to be codesigned are specified
+in the dictionary using a glob pattern.
 
     {
         "map" : [
@@ -76,14 +78,15 @@ Note:
      "globs" entry.
 
   2) The sign, keychain, requirements, and entitlements array must either
-     be empty or contain a single string.
+     be empty [] or contain a single string ["foo"].
 
         The entitlements entry should contain a filename for an
         entitlements file contained in the entitlements directory
         passed to the script.
 
-     The set of fields in ALLOWED_OVERRIDE_KEYS can be overridden
-     using command line options.
+     Some of the values specified in the map file can be overriden
+     with values passed on the command line. See ALLOWED_OVERRIDE_KEYS
+     in the source below for which options can be overriden.
 
   3) The globs array must contain one or more filename glob patterns
      which must each start with a "/" representing the root directory

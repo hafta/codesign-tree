@@ -1,0 +1,91 @@
+{
+  "map" : [
+    {
+      "deep"         : false,
+      "runtime"      : true,
+      "force"        : true,
+      "keychain"     : [],
+      "sign"         : [],
+      "requirements" : [],
+      "entitlements" : ["production.entitlements.xml"],
+      "globs"        : [
+        "/Contents/MacOS/crashreporter.app"
+      ]
+    },
+    {
+      "deep"         : false,
+      "runtime"      : true,
+      "force"        : true,
+      "keychain"     : [],
+      "sign"         : [],
+      "requirements" : [],
+      "entitlements" : ["production.entitlements.xml"],
+      "globs"        : [
+        "/Contents/MacOS/updater.app"
+      ]
+    },
+    {
+      "deep"         : false,
+      "runtime"      : true,
+      "force"        : true,
+      "keychain"     : [],
+      "sign"         : [],
+      "requirements" : [],
+      "entitlements" : ["production.entitlements.xml"],
+      "globs"        : [
+        "/Contents/MacOS/plugin-container.app"
+      ]
+    },
+    {
+      "deep"         : false,
+      "runtime"      : true,
+      "force"        : true,
+      "keychain"     : [],
+      "sign"         : [],
+      "requirements" : [],
+      "entitlements" : ["production.entitlements.xml"],
+      "globs"        : [
+        "/Contents/MacOS/XUL",
+        "/Contents/MacOS/pingsender",
+        "/Contents/MacOS/minidump-analyzer",
+        "/Contents/MacOS/*.dylib"
+      ]
+    },
+    {
+      "deep"         : false,
+      "runtime"      : true,
+      "force"        : true,
+      "keychain"     : [],
+      "sign"         : [],
+      "requirements" : [],
+      "entitlements" : ["production.entitlements.xml"],
+      "globs"        : [
+        "/Contents/MacOS/firefox-bin"
+      ]
+    },
+    {
+      "deep"         : false,
+      "runtime"      : true,
+      "force"        : true,
+      "keychain"     : [],
+      "sign"         : [],
+      "requirements" : [],
+      "entitlements" : ["production.entitlements.xml"],
+      "globs"        : [
+        "/Contents/Resources/gmp-clearkey/**/*.dylib"
+      ]
+    },
+    {
+      "deep"         : false,
+      "runtime"      : true,
+      "force"        : true,
+      "keychain"     : [],
+      "sign"         : [],
+      "requirements" : [],
+      "entitlements" : ["production.entitlements.xml"],
+      "globs"        : [
+        "/"
+      ]
+    }
+  ]
+}
