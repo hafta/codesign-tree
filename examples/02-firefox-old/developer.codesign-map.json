@@ -72,7 +72,7 @@
       "requirements" : [],
       "entitlements" : ["developer.entitlements.xml"],
       "globs"        : [
-        "/Contents/Resources/gmp-clearkey/**"
+        "/Contents/Resources/gmp-clearkey/**/*.dylib"
       ]
     },
     {
