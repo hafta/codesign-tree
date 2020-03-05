@@ -102,6 +102,8 @@ import logging
 import os
 import subprocess
 import sys
+import tempfile
+import zipfile
 
 REQUIRED_MAP_FILE_KEYS = ["force", "sign", "deep", "runtime", "entitlements",
         "globs", "keychain", "requirements"]
@@ -124,6 +126,13 @@ def main():
 
     parser.add_argument("-d", "--ent-dir", type=str, required=True,
             help="the entitlement file directory")
+
+    parser.add_argument("-z", "--ent-zip-file", type=str, required=False,
+            help="a zip file containing entitlement and map files. "
+            "When used, the provided entitlement directory and map files "
+            "will be read from the zip file and the -m/--map-file and "
+            "-d/--ent-dir options must be relative paths (relative to the "
+            "root of the zip file)")
 
     parser.add_argument("-r", "--root-dir", type=str, required=True,
             help="the root dir, e.g., /Users/me/MyApp.app")
@@ -156,23 +165,84 @@ def main():
 
     args = parser.parse_args()
 
+    if args.verbose:
+        logging.basicConfig(level=logging.DEBUG)
     logger = logging.getLogger('codesign')
-    logger.setLevel(logging.DEBUG)
+    #logger.setLevel(level=logging.DEBUG)
+
+    temp_dir = None
+    map_file_unchecked = args.map_file
+    ent_dir_unchecked = args.ent_dir
+
+    # if a zip file was provided, unzip it and get a path to
+    # the entitlements directory and the map file. Overwrite
+    # the map file and entitlement dir args with paths from
+    # the extract zip file.
+    #import pdb; pdb.set_trace()
+    if args.ent_zip_file:
+        if not zipfile.is_zipfile(args.ent_zip_file):
+            logger.error("Invalid Zip file: \"%s\"" % args.ent_zip_file)
+            sys.exit(-1)
+
+        # create a temporary directory to unzip to. This is
+        # automatically deleted. Use tempfile.mkdtemp instead
+        # to prevent auto delete.
+        temp_dir = tempfile.TemporaryDirectory()
+        logger.debug("Using temp dir \"%s\" to unzip \"%s\"" %
+            (temp_dir.name, args.ent_zip_file))
+
+        # unzip the file to the temporary directory
+        zf = zipfile.ZipFile(args.ent_zip_file)
+        try:
+            zf.extractall(temp_dir.name);
+        except Exception as e:
+            logger.error("Error unzipping \"%s\"" % args.ent_zip_file)
+            logger.error(e)
+            sys.exit(-1)
+
+        if args.verbose:
+            zip_file_basename = os.path.basename(args.ent_zip_file)
+            file_list = zf.namelist()
+            file_list.sort()
+            for file in file_list:
+                logger.debug(zip_file_basename + ":" + file)
+
+        # check map file argument is a relative path
+        if os.path.isabs(args.map_file):
+            logger.error("Invalid map file: \"%s\"" % args.map_file)
+            logger.error("Map file argument must be a relative path when "
+                    "a zip file is used.");
+            sys.exit(-1)
+
+        # build path to the unzipped map file
+        map_file_unchecked = os.path.join(temp_dir.name, args.map_file)
+
+        # check entitlement dir argument is a relative path
+        if os.path.isabs(args.ent_dir):
+            logger.error("Invalid entitlements directory: \"%s\"" %
+                    (args.ent_dir))
+            logger.error("Entitlements directory argument must be a relative "
+                "path when a zip file is used.");
+            sys.exit(-1)
+
+        # build path to the unzipped entitlements dir
+        ent_dir_unchecked = os.path.join(temp_dir.name, args.ent_dir)
 
     # check map file
-    if not os.path.exists(args.map_file):
-        logger.error("Invalid map file: \"%s\"" % args.map_file)
+    if not os.path.exists(map_file_unchecked):
+        logger.error("Invalid map file: \"%s\"" % map_file_unchecked)
         sys.exit(-1)
-    if not os.access(args.map_file, os.R_OK):
-        logger.error("Map file read access error:\"%s\"" % args.map_file)
+    if not os.access(map_file_unchecked, os.R_OK):
+        logger.error("Map file read access error:\"%s\"" % map_file_unchecked)
         sys.exit(-1)
-    map_file = os.path.realpath(args.map_file)
+    map_file = os.path.realpath(map_file_unchecked)
 
     # check entitlement dir
-    if not os.path.isdir(args.ent_dir):
-        logger.error("Invalid entitlements directory: \"%s\"" % (args.ent_dir))
+    if not os.path.isdir(ent_dir_unchecked):
+        logger.error("Invalid entitlements directory: \"%s\"" %
+                (ent_dir_unchecked))
         sys.exit(-1)
-    ent_dir = os.path.realpath(args.ent_dir)
+    ent_dir = os.path.realpath(ent_dir_unchecked)
     ent_dir = ent_dir.rstrip("/")
 
     # check root dir
@@ -183,16 +253,17 @@ def main():
     root_dir = root_dir.rstrip("/")
 
     if args.verbose:
-        print("JSON map file:          %s" % map_file);
-        print("Entitlement directory:  %s" % ent_dir);
-        print("Root directory:         %s" % root_dir);
-        print("Codesigning identity:   %s" % args.sign);
+        logger.info("JSON map file:          %s" % map_file);
+        logger.info("Entitlement directory:  %s" % ent_dir);
+        logger.info("Root directory:         %s" % root_dir);
+        logger.info("Codesigning identity:   %s" % args.sign);
 
     overrides = {}
     for key in ALLOWED_OVERRIDE_KEYS:
         override_arg_key = getattr(args, key)
         if override_arg_key is not None:
-            print("Override:               %s: %s" % (key,override_arg_key));
+            logger.info("Override:               %s: %s" %
+                    (key,override_arg_key));
             overrides[key] = override_arg_key
 
     exit_code = 0
@@ -249,7 +320,7 @@ def codesign_tree(map_file,
     root_dir = root_dir.rstrip("/")
 
     log.debug("json map file: %s" % map_file);
-    log.debug("entitlement directory: %s" % map_file);
+    log.debug("entitlement directory: %s" % ent_dir);
     log.debug("root directory: %s" % root_dir);
     log.debug("codesign command to use: %s" % cs_path);
 
@@ -345,7 +416,6 @@ def codesign_tree(map_file,
 
         if verbose or simulate:
             log.info(" ".join(cs_cmd))
-            print(" ".join(cs_cmd))
 
         if not simulate:
             subprocess.run(cs_cmd)
