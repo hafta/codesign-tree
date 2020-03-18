@@ -168,7 +168,6 @@ def main():
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
     logger = logging.getLogger('codesign')
-    #logger.setLevel(level=logging.DEBUG)
 
     temp_dir = None
     map_file_unchecked = args.map_file
@@ -178,7 +177,6 @@ def main():
     # the entitlements directory and the map file. Overwrite
     # the map file and entitlement dir args with paths from
     # the extract zip file.
-    #import pdb; pdb.set_trace()
     if args.ent_zip_file:
         if not zipfile.is_zipfile(args.ent_zip_file):
             logger.error("Invalid Zip file: \"%s\"" % args.ent_zip_file)
