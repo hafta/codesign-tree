@@ -6,7 +6,7 @@
 
 This script runs the codesign(1) command on a directory tree as
 specified by a provided JSON mappings file referred to as a map file.
-The function codesign_tree does the bulk of the work and is written
+The function codesigntree does the bulk of the work and is written
 to be reused when the code is included as a module. The format of the
 JSON map file is as follows.
 
@@ -265,13 +265,13 @@ def main():
             overrides[key] = override_arg_key
 
     exit_code = 0
-    if not codesign_tree(map_file, root_dir, ent_dir, overrides,
+    if not codesigntree(map_file, root_dir, ent_dir, overrides,
             args.simulate, args.verbose, logger):
         exit_code = -1
 
     sys.exit(exit_code)
 
-def codesign_tree(map_file,
+def codesigntree(map_file,
         root_dir,
         ent_dir,
         overrides,
