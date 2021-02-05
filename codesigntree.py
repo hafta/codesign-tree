@@ -352,7 +352,7 @@ def codesigntree(map_file,
         ent_filename = None
         if "entitlements" in overrides:
             ent_filename = overrides["entitlements"]
-        elif len(cs_entry["entitlements"]) is 1:
+        elif len(cs_entry["entitlements"]) == 1:
             ent_filename = cs_entry["entitlements"][0]
         if ent_filename is not None:
             ent_fullpath = ent_dir + "/" + ent_filename;
@@ -368,10 +368,10 @@ def codesigntree(map_file,
                         % path_glob)
                 return False
             binary_paths = glob.glob(root_dir + path_glob, recursive=True)
-            if len(binary_paths) is 0:
+            if len(binary_paths) == 0:
                 log.warning("file pattern \"%s\" matches no files" % path_glob)
 
-        if len(cs_entry["sign"]) is 0 and "sign" not in overrides:
+        if len(cs_entry["sign"]) == 0 and "sign" not in overrides:
             log.error("ERROR: map file missing \"sign\" entry and no signing " +
                     "override provided")
             return False
