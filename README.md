@@ -1,4 +1,4 @@
-Small utility to runs the macOS codesign(1) command on a directory tree
+Small utility to run the macOS codesign(1) command on a directory tree
 using different options on any subdirectories and files as specified in
 a JSON configuration file.
 
