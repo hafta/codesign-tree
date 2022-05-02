@@ -1,0 +1,26 @@
+{
+  "map" : [
+    {
+      "deep"         : false,
+      "runtime"      : true,
+      "force"        : true,
+      "keychain"     : [],
+      "sign"         : [],
+      "requirements" : [],
+      "entitlements" : ["production.entitlements.xml"],
+      "globs"        : [
+        "/Contents/MacOS/crashreporter.app",
+        "/Contents/MacOS/updater.app",
+        "/Contents/Library/LaunchServices/org.mozilla.updater",
+        "/Contents/MacOS/plugin-container.app",
+        "/Contents/MacOS/XUL",
+        "/Contents/MacOS/pingsender",
+        "/Contents/MacOS/minidump-analyzer",
+        "/Contents/MacOS/*.dylib",
+        "/Contents/MacOS/firefox-bin",
+        "/Contents/Resources/gmp-clearkey/**/*.dylib",
+        "/"
+      ]
+    }
+  ]
+}
