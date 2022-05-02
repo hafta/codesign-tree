@@ -25,9 +25,8 @@ same value passed to the codesign command -s option.
 $ export CSID=<Your developer ID codesigning identity>
 ```
 
-Run codesign-tree which will sign files as dictated by the codesign-map.json file.
+Run codesigntree which will sign files as dictated by the codesign-map.json file.
 ```
-$ python3 codesign-tree.py -v -m ./examples/02-firefox-v101/production.codesign-map.json -r ./Nightly.app/ -d ./examples/02-firefox-v101/ -s $CSID
 $ python3 codesigntree.py -v -m ./examples/02-firefox-v101/production.codesign-map.json -r ./Nightly.app/ -d ./examples/02-firefox-v101/ -s $CSID
 INFO:codesign:JSON map file:          /codesign-tree/examples/02-firefox-v101/production.codesign-map.json
 INFO:codesign:Entitlement directory:  /codesign-tree/examples/02-firefox-v101
