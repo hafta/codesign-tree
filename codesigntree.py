@@ -395,7 +395,7 @@ def codesigntree(map_file,
         for string_option in ["sign", "requirements", "keychain"]:
             if string_option in cs_entry and len(cs_entry[string_option]) > 0:
                 cs_cmd.append("--%s" % string_option)
-                cs_cmd.append(cs_entry[string_option][0])
+                cs_cmd.append(cs_entry[string_option])
 
         if "runtime" in cs_entry and cs_entry["runtime"] is True:
             cs_cmd.append("--options")
