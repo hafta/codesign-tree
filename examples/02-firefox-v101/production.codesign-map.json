@@ -18,7 +18,7 @@
         "/Contents/MacOS/minidump-analyzer",
         "/Contents/MacOS/*.dylib",
         "/Contents/MacOS/firefox-bin",
-        "/Contents/Resources/gmp-clearkey/**/*.dylib",
+        "/Contents/Resources/gmp-clearkey/*/*.dylib",
         "/"
       ]
     }
